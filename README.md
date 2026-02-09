@@ -1,6 +1,6 @@
 # BudgetCal
 
-BudgetCal is a lightweight checking-account planner that combines a modern calendar UI with recurring and one-off transactions, all wrapped inside an Electron shell for Windows so you enjoy native window controls and automatic local persistence.
+BudgetCal is a lightweight checking-account planner that combines a modern calendar UI with recurring and one-off transactions, all wrapped inside an Electron shell.
 
 ## Running the app
 
