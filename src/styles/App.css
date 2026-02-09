@@ -1027,14 +1027,12 @@ html, body { background: #f5f7fa; }
   display: grid;
   grid-template-areas:
     "number  .       ."
-    "content content content"
-    ".       .       balance";
+    "content content balance";
   grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto 1fr auto;
-  gap: clamp(4px, 0.8cqh, 10px);
-  padding: clamp(8px, 1.5cqh, 16px);
+  grid-template-rows: auto 1fr;
+  gap: clamp(4px, 0.8cqh, 10px) clamp(4px, 0.6cqw, 10px);
+  padding: clamp(4px, 1cqh, 14px) clamp(4px, 0.8cqw, 14px);
   align-items: start;
-  /* CSS transitions on gap/padding fight with Framer Motion layout animations. Removed. */
 }
 
 /* Smooth transitions for layout elements (avoid animating layout-affecting props) */
@@ -1091,8 +1089,10 @@ html, body { background: #f5f7fa; }
   flex-direction: column;
   gap: clamp(4px, 0.6cqh, 8px);
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
-  align-self: start;
+  align-self: stretch;
+  justify-content: start;
 }
 
 .day-inner .balance {
@@ -1100,6 +1100,7 @@ html, body { background: #f5f7fa; }
   justify-self: end;
   align-self: end;
   min-height: 0;
+  flex-shrink: 0;
 }
 
 .day-header-row {
@@ -1111,13 +1112,12 @@ html, body { background: #f5f7fa; }
 
 .day-number {
   font-weight: 700;
-  font-size: clamp(1rem, 2cqw + 0.4rem, 1.8rem);
+  font-size: clamp(0.8rem, 1.4cqw + 0.2rem, 1.7rem);
   color: #1e293b;
   line-height: 1;
-  min-height: clamp(28px, 4cqw + 0.5rem, 48px);
+  min-height: clamp(20px, 2.5cqw + 0.3rem, 44px);
   display: inline-flex;
   align-items: center;
-  transition: font-size 200ms ease-out;
 }
 
 .day-number.today-number {
@@ -1157,21 +1157,16 @@ html, body { background: #f5f7fa; }
 .tx-pill {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: clamp(6px, 0.8cqw, 10px);
-  font-size: clamp(0.7rem, 1.5cqh + 0.2rem, 1rem);
+  gap: clamp(2px, 0.5cqw, 8px);
+  font-size: clamp(0.55rem, 1cqw + 0.1rem, 0.95rem);
   font-weight: 600;
-  padding: clamp(4px, 0.8cqh, 10px) clamp(12px, 2cqw, 24px);
-  min-height: clamp(24px, 3cqh + 4px, 40px);
+  padding: clamp(2px, 0.5cqh, 8px) clamp(4px, 1cqw, 16px);
+  min-height: clamp(18px, 2cqh, 36px);
   border-radius: 999px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
-  transition: min-height 200ms ease-out,
-              font-size 200ms ease-out,
-              padding 200ms ease-out,
-              max-width 200ms ease-out;
+  min-width: 0;
 }
 
 .tx-pill.income {
@@ -1204,12 +1199,12 @@ html, body { background: #f5f7fa; }
 .tx-overflow-badge {
   flex-shrink: 0;
   background: rgba(0, 0, 0, 0.15);
-  font-size: clamp(0.65rem, 1.2cqh + 0.15rem, 0.85rem);
+  font-size: clamp(0.55rem, 0.8cqw + 0.05rem, 0.8rem);
   font-weight: 700;
-  padding: clamp(3px, 0.6cqh, 6px) clamp(8px, 1.2cqw, 12px);
+  padding: clamp(1px, 0.3cqh, 5px) clamp(4px, 0.7cqw, 10px);
   border-radius: 999px;
   white-space: nowrap;
-  min-width: clamp(28px, 3cqw, 38px);
+  min-width: clamp(20px, 2cqw, 34px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1218,12 +1213,11 @@ html, body { background: #f5f7fa; }
 /* Standard balance */
 .balance {
   font-family: 'Space Mono', monospace;
-  font-size: clamp(0.8rem, 1.8cqh + 0.3rem, 1.4rem);
+  font-size: clamp(0.65rem, 1.2cqw + 0.1rem, 1.3rem);
   font-weight: 700;
   text-align: right;
   line-height: 1.2;
   white-space: nowrap;
-  transition: font-size 200ms ease-out;
 }
 
 .balance.positive { color: #10b981; }

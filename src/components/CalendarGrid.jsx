@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { DAYS } from '../utils/constants';
 import { getDaysInMonth } from '../utils/dateUtils';
 import CalendarDay from './CalendarDay';
-import gsap from 'gsap';
-import { Flip } from 'gsap/dist/Flip';
-
-gsap.registerPlugin(Flip);
+import { LayoutTransitionContext } from '../contexts/LayoutTransitionContext';
 
 // Animation variants for page-flip effect
 const calendarVariants = {
@@ -32,10 +29,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   // Create a unique key for the current month
   const monthKey = `${year}-${month}`;
 
-  // Centralized layout mode state
-  const gridRef = useRef(null);
-  const flipStateRef = useRef(null);
-  const prevLayoutModeRef = useRef(null);
+  const gridRef = React.useRef(null);
 
   const [layoutMode, setLayoutMode] = useState(() => {
     const height = window.innerHeight;
@@ -45,6 +39,8 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     if (shouldCompact) return 'compact';
     return 'default';
   });
+
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Single resize listener - throttled for live animations during resize
   useEffect(() => {
@@ -69,7 +65,6 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
 
       // Throttle: only process every 50ms
       if (now - lastTime < 50) {
-        // Schedule one final check after throttle period
         if (rafId) cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(() => onResize());
         return;
@@ -78,15 +73,9 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
 
       setLayoutMode((prev) => {
         const newMode = getTargetMode(prev);
-
-        // Only capture flip state if mode is actually changing
-        if (newMode !== prev && gridRef.current) {
-          const targets = gridRef.current.querySelectorAll('.day-inner');
-          if (targets.length > 0) {
-            flipStateRef.current = Flip.getState(targets);
-          }
+        if (newMode !== prev) {
+          setIsTransitioning(true);
         }
-
         return newMode;
       });
     };
@@ -98,20 +87,14 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     };
   }, []);
 
-  // Single animation for the entire grid
-  useLayoutEffect(() => {
-    if (layoutMode !== prevLayoutModeRef.current && flipStateRef.current) {
-      requestAnimationFrame(() => {
-        Flip.from(flipStateRef.current, {
-          duration: 0.35,
-          ease: 'back.out(1.2)',
-          scale: false,
-        });
-        flipStateRef.current = null;
-      });
-    }
-    prevLayoutModeRef.current = layoutMode;
-  }, [layoutMode]);
+  const handleLayoutAnimationComplete = useCallback(() => {
+    setIsTransitioning(false);
+  }, []);
+
+  const ctxValue = useMemo(() => ({
+    layoutMode,
+    isTransitioning,
+  }), [layoutMode, isTransitioning]);
 
   const renderDays = () => {
     const days = [];
@@ -126,7 +109,6 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           key={`prev-${i}`}
           day={day}
           isOtherMonth={true}
-          layoutMode={layoutMode}
         />
       );
     }
@@ -148,7 +130,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           isBeforeStart={isBeforeStart}
           isOtherMonth={false}
           onClick={onDayClick}
-          layoutMode={layoutMode}
+          onLayoutAnimationComplete={day === 1 ? handleLayoutAnimationComplete : undefined}
         />
       );
     }
@@ -162,7 +144,6 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           key={`next-${i}`}
           day={i}
           isOtherMonth={true}
-          layoutMode={layoutMode}
         />
       );
     }
@@ -171,34 +152,38 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   };
 
   return (
-    <div className="calendar-container">
-      <div className="calendar-scroll">
-        <div className="calendar-headers">
-          {DAYS.map(day => (
-            <div key={day} className="day-header">{day}</div>
-          ))}
-        </div>
-        <div className="calendar-body" ref={gridRef}>
-          <AnimatePresence mode="popLayout" custom={direction}>
-            <motion.div
-              key={monthKey}
-              custom={direction}
-              variants={calendarVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: 'tween', duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
-                opacity: { duration: 0.25, ease: 'easeOut' },
-              }}
-              className="calendar-grid-days"
-            >
-              {renderDays()}
-            </motion.div>
-          </AnimatePresence>
+    <LayoutTransitionContext.Provider value={ctxValue}>
+      <div className="calendar-container">
+        <div className="calendar-scroll">
+          <div className="calendar-headers">
+            {DAYS.map(day => (
+              <div key={day} className="day-header">{day}</div>
+            ))}
+          </div>
+          <div className="calendar-body" ref={gridRef}>
+            <AnimatePresence mode="popLayout" custom={direction}>
+              <motion.div
+                key={monthKey}
+                custom={direction}
+                variants={calendarVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: 'tween', duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
+                  opacity: { duration: 0.25, ease: 'easeOut' },
+                }}
+                className="calendar-grid-days"
+              >
+                <LayoutGroup>
+                  {renderDays()}
+                </LayoutGroup>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-    </div>
+    </LayoutTransitionContext.Provider>
   );
 };
 
