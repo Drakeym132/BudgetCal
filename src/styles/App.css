@@ -189,6 +189,7 @@ html, body { background: #f5f7fa; }
   overflow: hidden;
   background: transparent;
   position: relative;
+  padding: 0 clamp(24px, 2vw, 48px);
 }
 
 .header-card-modern::before {
@@ -196,7 +197,7 @@ html, body { background: #f5f7fa; }
 }
 
 .header-top {
-  padding: clamp(20px, 2vh + 1vw, 40px) clamp(24px, 2vw, 48px);
+  padding: clamp(20px, 2vh + 1vw, 40px) 0;
   display: flex;
   flex-direction: column;
   gap: clamp(20px, 2vh, 32px);
@@ -227,6 +228,7 @@ html, body { background: #f5f7fa; }
   justify-content: space-between;
   gap: clamp(16px, 2vw, 32px);
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .header-actions-row {
@@ -324,6 +326,7 @@ html, body { background: #f5f7fa; }
   display: flex;
   flex-direction: column;
   gap: clamp(16px, 1.5vh, 24px);
+  width: 100%;
 }
 
 .metrics-bar {
@@ -333,6 +336,7 @@ html, body { background: #f5f7fa; }
   border-radius: 16px;
   padding: clamp(14px, 1.2vw, 22px) clamp(8px, 1vw, 16px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(226, 232, 240, 0.6);
+  width: 100%;
 }
 
 .metrics-bar__divider {
@@ -609,6 +613,7 @@ html, body { background: #f5f7fa; }
   display: flex;
   flex-direction: column;
   min-height: 0;
+  padding: 0 clamp(24px, 2vw, 48px);
 }
 
 /* Combined Header */
@@ -911,9 +916,6 @@ html, body { background: #f5f7fa; }
   overflow: hidden;
   flex: 1;
   width: 100%;
-  max-width: 2300px;
-  margin: 0 auto;
-  align-self: center;
   min-height: 0;
   display: flex;
   flex-direction: column;
