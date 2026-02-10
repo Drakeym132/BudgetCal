@@ -603,7 +603,7 @@ html, body { background: #f5f7fa; }
 }
 
 .main-content {
-  width: min(100%, 2400px);
+  width: min(100%, 2300px);
   margin: 0 auto;
   flex: 1;
   display: flex;
