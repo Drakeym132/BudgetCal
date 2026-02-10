@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Calendar, RefreshCw } from 'lucide-react';
 import { useTransactions, useBalanceCalculations, useModalState } from '../hooks/useTransactions';
@@ -18,12 +18,6 @@ const CheckingCalendar = () => {
   const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [isBalanceModalClosing, setIsBalanceModalClosing] = useState(false);
-  const [metricShadowBlur, setMetricShadowBlur] = useState(() => {
-    const saved = window.localStorage.getItem('metricShadowBlur');
-    const parsed = saved ? Number(saved) : 18;
-    return Number.isFinite(parsed) ? parsed : 18;
-  });
-  
   const {
     transactions,
     startingBalance,
@@ -170,12 +164,8 @@ const CheckingCalendar = () => {
     ? getTransactionsForDate(transactions, selectedDate) 
     : [];
 
-  useEffect(() => {
-    window.localStorage.setItem('metricShadowBlur', String(metricShadowBlur));
-  }, [metricShadowBlur]);
-
   return (
-    <div className="app-container" style={{ '--metric-shadow-blur': `${metricShadowBlur}px` }}>
+    <div className="app-container">
       <div className="header-card-modern">
         <div className="header-top">
             <div className="header-title-row">
@@ -223,8 +213,6 @@ const CheckingCalendar = () => {
             balance30Days={balance30Days}
             balance60Days={balance60Days}
             formatCurrency={formatCurrency}
-            metricShadowBlur={metricShadowBlur}
-            onMetricShadowBlurChange={setMetricShadowBlur}
           />
         </div>
       </div>
