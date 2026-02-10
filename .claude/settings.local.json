@@ -5,7 +5,12 @@
       "Bash(lsof:*)",
       "mcp__Control_Chrome__open_url",
       "Bash(curl:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(node -e:*)",
+      "Bash(npm run dev:*)",
+      "Bash(xargs kill:*)"
     ]
   }
 }
