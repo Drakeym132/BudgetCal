@@ -12,44 +12,57 @@ const CalendarDay = ({
   onClick,
   layoutMode
 }) => {
-  const [maxVisible, setMaxVisible] = useState(layoutMode !== 'default' ? 1 : 3);
+  const getFixedMaxVisible = (mode) => {
+    if (mode === 'medium') return 2;
+    if (mode === 'compact' || mode === 'ultrawide') return 1;
+    return null; // default: dynamic via ResizeObserver
+  };
+
+  const [maxVisible, setMaxVisible] = useState(() => {
+    const fixed = getFixedMaxVisible(layoutMode);
+    return fixed !== null ? fixed : 3;
+  });
   const cellRef = useRef(null);
-  const lastHeightRef = useRef(null);
   const rafIdRef = useRef(null);
+
+  // Reusable pill count calculation from cell dimensions
+  const recalcPills = (cell) => {
+    if (!cell) return;
+    const inner = cell.querySelector('.day-inner');
+    if (!inner) return;
+    const height = inner.getBoundingClientRect().height;
+    const samplePill = inner.querySelector('.tx-pill');
+    const computedPillHeight = samplePill?.offsetHeight || 28;
+    const innerStyles = getComputedStyle(inner);
+    const gap = parseFloat(innerStyles.rowGap) || parseFloat(innerStyles.gap) || 6;
+    const padding = parseFloat(innerStyles.paddingTop) + parseFloat(innerStyles.paddingBottom) || 0;
+    const headerHeight = inner.querySelector('.day-number')?.offsetHeight || 28;
+    const balanceHeight = inner.querySelector('.balance')?.offsetHeight || 28;
+
+    const available = Math.max(0, height - padding - headerHeight - balanceHeight - gap * 2);
+    const possible = Math.floor((available + gap) / (computedPillHeight + gap));
+    setMaxVisible(Math.max(1, Math.min(4, possible || 2)));
+  };
 
   // Update maxVisible when layoutMode changes
   useEffect(() => {
-    if (layoutMode !== 'default') {
-      setMaxVisible(1);
+    const fixed = getFixedMaxVisible(layoutMode);
+    if (fixed !== null) {
+      setMaxVisible(fixed);
+    } else {
+      // Returning to default mode — actively recalculate after layout settles
+      requestAnimationFrame(() => recalcPills(cellRef.current));
     }
   }, [layoutMode]);
 
   // ResizeObserver for pill counting (only in default mode)
   useEffect(() => {
     const cell = cellRef.current;
-    if (!cell || !dayData?.transactions?.length) return;
+    if (!cell || !dayData?.transactions?.length || layoutMode !== 'default') return;
 
-    const observer = new ResizeObserver((entries) => {
-      // Skip pill counting in compact/ultrawide modes
-      if (layoutMode !== 'default') return;
-
+    const observer = new ResizeObserver(() => {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = requestAnimationFrame(() => {
-        const { height } = entries[0].contentRect;
-        if (lastHeightRef.current === height) return;
-        lastHeightRef.current = height;
-
-        const samplePill = cell.querySelector('.tx-pill');
-        const computedPillHeight = samplePill?.offsetHeight || 28;
-        const computedStyles = getComputedStyle(cell);
-        const gap = parseFloat(computedStyles.gap) || 6;
-        const headerHeight = cell.querySelector('.day-number')?.offsetHeight || 28;
-        const balanceHeight = cell.querySelector('.balance')?.offsetHeight || 28;
-
-        const available = Math.max(0, height - headerHeight - balanceHeight - gap * 2);
-        const possible = Math.floor((available + gap) / (computedPillHeight + gap));
-        setMaxVisible(Math.max(1, Math.min(4, possible || 2)));
-      });
+      rafIdRef.current = requestAnimationFrame(() => recalcPills(cell));
     });
 
     observer.observe(cell);
@@ -59,7 +72,8 @@ const CalendarDay = ({
     };
   }, [dayData?.transactions?.length, layoutMode]);
 
-  const effectiveMaxVisible = layoutMode !== 'default' ? 1 : maxVisible;
+  const effectiveMaxVisible = layoutMode === 'default' ? maxVisible :
+                              layoutMode === 'medium' ? 2 : 1;
   const allTransactions = dayData?.transactions || [];
   const totalCount = allTransactions.length;
   const hasOverflow = totalCount > effectiveMaxVisible;
@@ -85,14 +99,14 @@ const CalendarDay = ({
 
         {dayData && totalCount > 0 && (
           <div className="day-transactions">
-            <AnimatePresence mode="popLayout" initial={false}>
+            <AnimatePresence initial={false}>
               {displayTransactions.map((tx, i) => (
                 <motion.div
                   key={tx.id || `tx-${i}`}
                   className={`tx-pill ${tx.type}`}
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.12 } }}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4, transition: { duration: 0.12 } }}
                   transition={pillTransition}
                 >
                   <span className="tx-pill-text">{tx.name}</span>
@@ -102,9 +116,9 @@ const CalendarDay = ({
                 <motion.div
                   key="overflow-pill"
                   className={`tx-pill tx-pill-with-badge ${lastVisibleTx.type}`}
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.12 } }}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4, transition: { duration: 0.12 } }}
                   transition={pillTransition}
                 >
                   <span className="tx-pill-text">{lastVisibleTx.name}</span>

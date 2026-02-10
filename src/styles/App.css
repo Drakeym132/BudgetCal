@@ -1024,16 +1024,13 @@ html, body { background: #f5f7fa; }
 .day-inner {
   width: 100%;
   height: 100%;
-  display: grid;
-  grid-template-areas:
-    "number  .       ."
-    "content content content"
-    ".       .       balance";
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: clamp(4px, 0.8cqh, 10px);
   padding: clamp(8px, 1.5cqh, 16px);
-  align-items: start;
+  box-sizing: border-box;
+  overflow: hidden;
   /* CSS transitions on gap/padding fight with Framer Motion layout animations. Removed. */
 }
 
@@ -1079,27 +1076,26 @@ html, body { background: #f5f7fa; }
   opacity: 0.5;
 }
 
-/* Grid area assignments for positioned elements */
+/* Flex layout for day-inner children */
 .day-inner .day-number {
-  grid-area: number;
-  align-self: start;
+  flex-shrink: 0;
 }
 
 .day-inner .day-transactions {
-  grid-area: content;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
   gap: clamp(4px, 0.6cqh, 8px);
+  flex: 1 1 0%;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
-  align-self: start;
 }
 
 .day-inner .balance {
-  grid-area: balance;
-  justify-self: end;
-  align-self: end;
-  min-height: 0;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .day-header-row {
@@ -1164,14 +1160,10 @@ html, body { background: #f5f7fa; }
   padding: clamp(4px, 0.8cqh, 10px) clamp(12px, 2cqw, 24px);
   min-height: clamp(24px, 3cqh + 4px, 40px);
   border-radius: 999px;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
   transition: min-height 200ms ease-out,
               font-size 200ms ease-out,
-              padding 200ms ease-out,
-              max-width 200ms ease-out;
+              padding 200ms ease-out;
 }
 
 .tx-pill.income {
@@ -1197,7 +1189,7 @@ html, body { background: #f5f7fa; }
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -1229,51 +1221,79 @@ html, body { background: #f5f7fa; }
 .balance.positive { color: #10b981; }
 .balance.negative { color: #ef4444; }
 
-/* Layout mode: compact - pill in top-right corner, balance in bottom-right */
+/* Layout mode: medium - tighter vertical stack, max 2 pills */
+.calendar-day.layout-medium .day-inner {
+  gap: clamp(2px, 0.5cqh, 6px);
+  padding: clamp(6px, 1cqh, 12px) clamp(8px, 1.2cqw, 14px);
+}
+
+.calendar-day.layout-medium .day-number {
+  font-size: clamp(0.85rem, 1.6cqw + 0.25rem, 1.4rem);
+  min-height: clamp(22px, 3cqw + 0.3rem, 36px);
+}
+
+.calendar-day.layout-medium .day-number.today-number {
+  width: clamp(24px, 3.2cqw + 0.35rem, 38px);
+  height: clamp(24px, 3.2cqw + 0.35rem, 38px);
+  font-size: clamp(0.7rem, 1.1cqw + 0.2rem, 1rem);
+}
+
+.calendar-day.layout-medium .day-transactions {
+  gap: clamp(3px, 0.4cqh, 6px);
+}
+
+.calendar-day.layout-medium .tx-pill {
+  min-height: clamp(20px, 2.5cqh + 2px, 32px);
+  padding: clamp(3px, 0.5cqh, 7px) clamp(10px, 1.6cqw, 20px);
+  font-size: clamp(0.65rem, 1.2cqh + 0.15rem, 0.9rem);
+}
+
+.calendar-day.layout-medium .tx-pill-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-day.layout-medium .tx-overflow-badge {
+  padding: clamp(2px, 0.4cqh, 5px) clamp(6px, 0.9cqw, 10px);
+  font-size: clamp(0.55rem, 0.9cqh + 0.1rem, 0.75rem);
+  min-width: clamp(22px, 2.5cqw, 30px);
+}
+
+.calendar-day.layout-medium .balance {
+  font-size: clamp(0.75rem, 1.4cqh + 0.2rem, 1.2rem);
+}
+
+/* Layout mode: compact - single horizontal row: number | pill | balance */
 .calendar-day.layout-compact .day-inner {
-  grid-template-areas:
-    "number  .  content"
-    ".       .  balance";
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: 1fr auto;
-  align-items: start;
-  gap: clamp(4px, 0.6cqh, 8px) clamp(6px, 1cqw, 14px);
-  padding: clamp(6px, 1cqh, 12px) clamp(8px, 1.2cqw, 16px);
-  /* transition: gap 300ms linear, padding 300ms linear; */
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(4px, 0.8cqw, 12px);
+  padding: clamp(4px, 0.8cqh, 10px) clamp(8px, 1.2cqw, 16px);
 }
 
 .calendar-day.layout-compact .day-transactions {
-  /* grid-area: content; -- inherited from base, no override needed */
   flex-direction: row;
-  justify-content: flex-end;
   align-items: center;
-  align-self: start;
-  justify-self: end;
   gap: clamp(4px, 0.8cqw, 10px);
-  max-width: 100%;
   min-width: 0;
   overflow: hidden;
 }
 
 .calendar-day.layout-compact .balance {
-  grid-area: balance;
-  align-self: end;
-  justify-self: end;
-  font-size: clamp(0.75rem, 1.4cqh + 0.2rem, 1.2rem);
+  flex-shrink: 0;
+  font-size: clamp(0.7rem, 1.2cqh + 0.15rem, 1.1rem);
 }
 
 .calendar-day.layout-compact .tx-pill {
-  flex: 0 1 clamp(80px, 15cqw, 200px);
+  flex: 1 1 100%;
   min-width: 0;
-  max-width: 100%;
+  max-width: none;
   min-height: clamp(20px, 2.5cqh, 32px);
   padding: clamp(3px, 0.5cqh, 7px) clamp(10px, 1.5cqw, 18px);
   font-size: clamp(0.6rem, 1cqh + 0.12rem, 0.85rem);
-  /* transition: flex 300ms linear, padding 300ms linear, font-size 300ms linear; */
 }
 
 .calendar-day.layout-compact .tx-pill-text {
-  max-width: clamp(50px, 10cqw, 120px);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1285,6 +1305,7 @@ html, body { background: #f5f7fa; }
 }
 
 .calendar-day.layout-compact .day-number {
+  flex-shrink: 0;
   font-size: clamp(0.85rem, 1.6cqw + 0.25rem, 1.3rem);
 }
 
@@ -1296,17 +1317,14 @@ html, body { background: #f5f7fa; }
 
 /* Layout mode: ultrawide - single horizontal row: number | pill | balance */
 .calendar-day.layout-ultrawide .day-inner {
-  grid-template-areas: "number content balance";
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: 1fr;
+  flex-direction: row;
   align-items: center;
-  gap: clamp(8px, 1.5cqw, 20px);
-  /* transition: gap 300ms linear, padding 300ms linear; */
-  padding: clamp(4px, 0.8cqh, 10px) clamp(10px, 1.5cqw, 20px);
+  gap: clamp(10px, 2cqw, 24px);
+  padding: clamp(4px, 0.8cqh, 10px) clamp(12px, 1.8cqw, 24px);
 }
 
 .calendar-day.layout-ultrawide .day-number {
-  align-self: center;
+  flex-shrink: 0;
   font-size: clamp(0.9rem, 1.8cqw + 0.3rem, 1.5rem);
 }
 
@@ -1317,23 +1335,19 @@ html, body { background: #f5f7fa; }
 }
 
 .calendar-day.layout-ultrawide .day-transactions {
-  grid-area: content;
   flex-direction: row;
-  justify-content: center;
   align-items: center;
   gap: clamp(6px, 1cqw, 12px);
   overflow: visible;
-  width: 100%;
 }
 
 .calendar-day.layout-ultrawide .tx-pill {
   flex: 1 1 100%;
   min-width: 0;
   max-width: none;
-  min-height: clamp(24px, 3cqh, 38px);
-  padding: clamp(4px, 0.6cqh, 8px) clamp(14px, 2cqw, 28px);
-  font-size: clamp(0.7rem, 1.2cqh + 0.15rem, 1rem);
-  /* transition: flex 300ms linear, padding 300ms linear, font-size 300ms linear; */
+  min-height: clamp(22px, 2.8cqh, 34px);
+  padding: clamp(3px, 0.5cqh, 7px) clamp(16px, 2.5cqw, 32px);
+  font-size: clamp(0.65rem, 1cqh + 0.12rem, 0.95rem);
 }
 
 .calendar-day.layout-ultrawide .tx-pill-text {
@@ -1349,9 +1363,7 @@ html, body { background: #f5f7fa; }
 }
 
 .calendar-day.layout-ultrawide .balance {
-  grid-area: balance;
-  align-self: center;
-  justify-self: end;
+  flex-shrink: 0;
   font-size: clamp(0.85rem, 1.6cqh + 0.25rem, 1.4rem);
 }
 

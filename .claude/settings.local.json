@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(lsof:*)",
+      "mcp__Control_Chrome__open_url",
+      "Bash(curl:*)",
+      "Bash(npx vite build:*)"
     ]
   }
 }

@@ -40,9 +40,10 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   const [layoutMode, setLayoutMode] = useState(() => {
     const height = window.innerHeight;
     const width = window.innerWidth;
-    const shouldCompact = height <= 980 || (width >= 1340 && height <= 1120);
-    if (width > 1340 && shouldCompact) return 'ultrawide';
-    if (shouldCompact) return 'compact';
+    const isWide = width >= 1340;
+    if (isWide && height <= 900) return 'ultrawide';
+    if (height <= 980 || (isWide && height <= 980)) return 'compact';
+    if (height <= 1120 || (isWide && height <= 1120)) return 'medium';
     return 'default';
   });
 
@@ -55,12 +56,15 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
       const height = window.innerHeight;
       const width = window.innerWidth;
       const isWide = width >= 1340;
-      const compactOn = height <= 1120;
-      const compactOff = height >= 1140;
-      const shouldCompact = height <= 980 || (isWide && (prev === 'default' ? compactOn : !compactOff));
 
-      if (width > 1340 && shouldCompact) return 'ultrawide';
-      if (shouldCompact) return 'compact';
+      // 4-tier breakpoints with hysteresis (20px bands)
+      const ultrawideThresh = prev === 'ultrawide' ? 920 : 900;
+      const compactThresh = (prev === 'compact' || prev === 'ultrawide') ? 1000 : 980;
+      const mediumThresh = (prev === 'medium' || prev === 'compact' || prev === 'ultrawide') ? 1140 : 1120;
+
+      if (isWide && height <= ultrawideThresh) return 'ultrawide';
+      if (height <= compactThresh || (isWide && height <= compactThresh)) return 'compact';
+      if (height <= mediumThresh || (isWide && height <= mediumThresh)) return 'medium';
       return 'default';
     };
 
@@ -101,10 +105,13 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   // Single animation for the entire grid
   useLayoutEffect(() => {
     if (layoutMode !== prevLayoutModeRef.current && flipStateRef.current) {
+      const prev = prevLayoutModeRef.current;
+      const isSubtle = (prev === 'default' && layoutMode === 'medium') ||
+                       (prev === 'medium' && layoutMode === 'default');
       requestAnimationFrame(() => {
         Flip.from(flipStateRef.current, {
-          duration: 0.35,
-          ease: 'back.out(1.2)',
+          duration: isSubtle ? 0.25 : 0.35,
+          ease: isSubtle ? 'power2.out' : 'back.out(1.2)',
           scale: false,
         });
         flipStateRef.current = null;
