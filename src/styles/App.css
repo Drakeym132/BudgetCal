@@ -957,6 +957,8 @@ html, body { background: #f5f7fa; }
   position: relative;
   overflow: visible;
   min-width: var(--calendar-min-width);
+  /* Contain layout recalculations to this subtree */
+  contain: layout style;
 }
 
 .calendar-grid-days {
@@ -968,6 +970,16 @@ html, body { background: #f5f7fa; }
   position: absolute;
   inset: 0;
   min-width: var(--calendar-min-width);
+  /* GPU layer promotion for smooth month slide transitions */
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* During layout mode transitions, suppress Framer Motion animations on pills */
+.is-layout-transitioning .tx-pill,
+.is-layout-transitioning .tx-overflow-badge {
+  animation: none !important;
+  transition: none !important;
 }
 
 .calendar-grid {

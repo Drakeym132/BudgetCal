@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DAYS } from '../utils/constants';
 import { getDaysInMonth } from '../utils/dateUtils';
@@ -8,7 +8,7 @@ import { Flip } from 'gsap/dist/Flip';
 
 gsap.registerPlugin(Flip);
 
-// Animation variants for page-flip effect
+// Animation variants for page-flip effect — stable module-level objects
 const calendarVariants = {
   enter: (direction) => ({
     x: direction > 0 ? '50%' : '-50%',
@@ -24,6 +24,12 @@ const calendarVariants = {
   }),
 };
 
+// Stable transition config — avoids object recreation each render
+const monthTransition = {
+  x: { type: 'tween', duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+  opacity: { duration: 0.2, ease: 'easeOut' },
+};
+
 const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -36,7 +42,9 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   const gridRef = useRef(null);
   const flipStateRef = useRef(null);
   const prevLayoutModeRef = useRef(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Use a ref + CSS class instead of state to avoid re-rendering all 42 CalendarDay components
+  const isTransitioningRef = useRef(false);
 
   const [layoutMode, setLayoutMode] = useState(() => {
     const height = window.innerHeight;
@@ -103,28 +111,30 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     };
   }, []);
 
-  // Single animation for the entire grid
+  // GSAP Flip animation — no stagger, uses CSS class toggle instead of state
   useLayoutEffect(() => {
     if (layoutMode !== prevLayoutModeRef.current && flipStateRef.current) {
       const prev = prevLayoutModeRef.current;
       const isSubtle = (prev === 'default' && layoutMode === 'medium') ||
                        (prev === 'medium' && layoutMode === 'default');
-      const isLargeTransition =
-        (prev === 'default' && (layoutMode === 'compact' || layoutMode === 'ultrawide')) ||
-        ((prev === 'compact' || prev === 'ultrawide') && layoutMode === 'default');
 
-      setIsTransitioning(true);
+      // Toggle CSS class on grid — pills read this via DOM instead of React prop
+      isTransitioningRef.current = true;
+      if (gridRef.current) {
+        gridRef.current.classList.add('is-layout-transitioning');
+      }
+
       requestAnimationFrame(() => {
         Flip.from(flipStateRef.current, {
-          duration: isSubtle ? 0.3 : isLargeTransition ? 0.45 : 0.35,
-          ease: isSubtle ? 'power2.inOut' : 'power3.out',
+          duration: isSubtle ? 0.25 : 0.3,
+          ease: 'power2.out',
           scale: false,
-          stagger: {
-            amount: isSubtle ? 0.03 : 0.06,
-            from: 'start',
-          },
+          // No stagger — all elements animate simultaneously for smoother feel
           onComplete: () => {
-            setTimeout(() => setIsTransitioning(false), 50);
+            isTransitioningRef.current = false;
+            if (gridRef.current) {
+              gridRef.current.classList.remove('is-layout-transitioning');
+            }
           },
         });
         flipStateRef.current = null;
@@ -133,21 +143,26 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     prevLayoutModeRef.current = layoutMode;
   }, [layoutMode]);
 
-  const renderDays = () => {
-    const days = [];
+  // Stable click handler — prevents new function ref on every render
+  const handleDayClick = useCallback((dateStr) => {
+    onDayClick(dateStr);
+  }, [onDayClick]);
+
+  // Memoize the days array to prevent recreation when only direction changes
+  const days = useMemo(() => {
+    const result = [];
 
     // Previous month days
     const prevMonth = new Date(year, month, 0);
     const prevMonthDays = prevMonth.getDate();
     for (let i = startingDay - 1; i >= 0; i--) {
       const day = prevMonthDays - i;
-      days.push(
+      result.push(
         <CalendarDay
           key={`prev-${i}`}
           day={day}
           isOtherMonth={true}
           layoutMode={layoutMode}
-          isTransitioning={isTransitioning}
         />
       );
     }
@@ -159,7 +174,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
       const isToday = dateStr === todayStr;
       const isBeforeStart = dateStr < todayStr;
 
-      days.push(
+      result.push(
         <CalendarDay
           key={day}
           day={day}
@@ -168,30 +183,28 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           isToday={isToday}
           isBeforeStart={isBeforeStart}
           isOtherMonth={false}
-          onClick={onDayClick}
+          onClick={handleDayClick}
           layoutMode={layoutMode}
-          isTransitioning={isTransitioning}
         />
       );
     }
 
     // Next month days
-    const totalCells = days.length;
+    const totalCells = result.length;
     const remainingCells = 42 - totalCells;
     for (let i = 1; i <= remainingCells; i++) {
-      days.push(
+      result.push(
         <CalendarDay
           key={`next-${i}`}
           day={i}
           isOtherMonth={true}
           layoutMode={layoutMode}
-          isTransitioning={isTransitioning}
         />
       );
     }
 
-    return days;
-  };
+    return result;
+  }, [year, month, daysInMonth, startingDay, balances, todayStr, layoutMode, handleDayClick]);
 
   return (
     <div className="calendar-container">
@@ -210,13 +223,10 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{
-                x: { type: 'tween', duration: 0.35, ease: [0.4, 0, 0.2, 1] },
-                opacity: { duration: 0.2, ease: 'easeOut' },
-              }}
+              transition={monthTransition}
               className="calendar-grid-days"
             >
-              {renderDays()}
+              {days}
             </motion.div>
           </AnimatePresence>
         </div>

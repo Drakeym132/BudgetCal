@@ -10,7 +10,8 @@
       "Bash(npm run build:*)",
       "Bash(node -e:*)",
       "Bash(npm run dev:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(kill:*)"
     ]
   }
 }
