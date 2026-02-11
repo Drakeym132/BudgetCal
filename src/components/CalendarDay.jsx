@@ -23,8 +23,20 @@ const CalendarDay = ({
     const fixed = getFixedMaxVisible(layoutMode);
     return fixed !== null ? fixed : 3;
   });
+  const [justFinishedTransition, setJustFinishedTransition] = useState(false);
+  const prevTransitioningRef = useRef(isTransitioning);
   const cellRef = useRef(null);
   const rafIdRef = useRef(null);
+
+  // Brief cooldown after GSAP transition ends to prevent pill "pop"
+  useEffect(() => {
+    if (prevTransitioningRef.current && !isTransitioning) {
+      setJustFinishedTransition(true);
+      const timer = setTimeout(() => setJustFinishedTransition(false), 100);
+      return () => clearTimeout(timer);
+    }
+    prevTransitioningRef.current = isTransitioning;
+  }, [isTransitioning]);
 
   // Reusable pill count calculation from cell dimensions
   const recalcPills = (cell) => {
@@ -87,21 +99,36 @@ const CalendarDay = ({
     [allTransactions, displayCount]
   );
 
-  // Use instant animations during layout transitions to prevent conflicts
-  const pillTransition = isTransitioning
-    ? { duration: 0 }
-    : { type: "spring", stiffness: 450, damping: 32 };
+  // Use instant animations during layout transitions and cooldown to prevent conflicts
+  const shouldUseInstant = isTransitioning || justFinishedTransition;
 
-  const pillVariants = isTransitioning
+  const pillVariants = shouldUseInstant
     ? {
         initial: { opacity: 1, y: 0 },
         animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, transition: { duration: 0.08 } }
+        exit: { opacity: 0, transition: { duration: 0.06 } }
       }
     : {
-        initial: { opacity: 0, y: -4 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: 4, transition: { duration: 0.12 } }
+        initial: { opacity: 0, y: 8 },
+        animate: (i) => ({
+          opacity: 1,
+          y: 0,
+          transition: {
+            type: "tween",
+            duration: 0.25,
+            ease: [0.25, 0.1, 0.25, 1],
+            delay: i * 0.03,
+          }
+        }),
+        exit: {
+          opacity: 0,
+          y: -6,
+          transition: {
+            type: "tween",
+            duration: 0.15,
+            ease: [0.25, 0, 0.67, 0]
+          }
+        }
       };
 
   return (
@@ -120,8 +147,11 @@ const CalendarDay = ({
                 <motion.div
                   key={tx.id || `tx-${i}`}
                   className={`tx-pill ${tx.type}`}
-                  {...pillVariants}
-                  transition={pillTransition}
+                  custom={i}
+                  variants={pillVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
                 >
                   <span className="tx-pill-text">{tx.name}</span>
                 </motion.div>
@@ -130,15 +160,18 @@ const CalendarDay = ({
                 <motion.div
                   key="overflow-pill"
                   className={`tx-pill tx-pill-with-badge ${lastVisibleTx.type}`}
-                  {...pillVariants}
-                  transition={pillTransition}
+                  custom={displayCount}
+                  variants={pillVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
                 >
                   <span className="tx-pill-text">{lastVisibleTx.name}</span>
                   <motion.span
                     className="tx-overflow-badge"
-                    initial={{ scale: isTransitioning ? 1 : 0 }}
-                    animate={{ scale: 1 }}
-                    transition={isTransitioning ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 28 }}
+                    initial={{ scale: shouldUseInstant ? 1 : 0.8, opacity: shouldUseInstant ? 1 : 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={shouldUseInstant ? { duration: 0 } : { type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1], delay: 0.06 }}
                   >
                     +{overflowCount}
                   </motion.span>

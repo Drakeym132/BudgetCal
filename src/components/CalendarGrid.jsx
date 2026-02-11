@@ -11,7 +11,7 @@ gsap.registerPlugin(Flip);
 // Animation variants for page-flip effect
 const calendarVariants = {
   enter: (direction) => ({
-    x: direction > 0 ? '100%' : '-100%',
+    x: direction > 0 ? '50%' : '-50%',
     opacity: 0,
   }),
   center: {
@@ -19,7 +19,7 @@ const calendarVariants = {
     opacity: 1,
   },
   exit: (direction) => ({
-    x: direction > 0 ? '-100%' : '100%',
+    x: direction > 0 ? '-30%' : '30%',
     opacity: 0,
   }),
 };
@@ -72,8 +72,8 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     const onResize = () => {
       const now = Date.now();
 
-      // Throttle: only process every 50ms
-      if (now - lastTime < 50) {
+      // Throttle: only process every 80ms
+      if (now - lastTime < 80) {
         // Schedule one final check after throttle period
         if (rafId) cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(() => onResize());
@@ -109,13 +109,23 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
       const prev = prevLayoutModeRef.current;
       const isSubtle = (prev === 'default' && layoutMode === 'medium') ||
                        (prev === 'medium' && layoutMode === 'default');
+      const isLargeTransition =
+        (prev === 'default' && (layoutMode === 'compact' || layoutMode === 'ultrawide')) ||
+        ((prev === 'compact' || prev === 'ultrawide') && layoutMode === 'default');
+
       setIsTransitioning(true);
       requestAnimationFrame(() => {
         Flip.from(flipStateRef.current, {
-          duration: isSubtle ? 0.25 : 0.35,
-          ease: isSubtle ? 'power2.out' : 'back.out(1.2)',
+          duration: isSubtle ? 0.3 : isLargeTransition ? 0.45 : 0.35,
+          ease: isSubtle ? 'power2.inOut' : 'power3.out',
           scale: false,
-          onComplete: () => setIsTransitioning(false),
+          stagger: {
+            amount: isSubtle ? 0.03 : 0.06,
+            from: 'start',
+          },
+          onComplete: () => {
+            setTimeout(() => setIsTransitioning(false), 50);
+          },
         });
         flipStateRef.current = null;
       });
@@ -201,8 +211,8 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: 'tween', duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
-                opacity: { duration: 0.25, ease: 'easeOut' },
+                x: { type: 'tween', duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.2, ease: 'easeOut' },
               }}
               className="calendar-grid-days"
             >
