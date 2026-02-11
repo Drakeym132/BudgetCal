@@ -10,7 +10,8 @@ const CalendarDay = ({
   isBeforeStart,
   isOtherMonth,
   onClick,
-  layoutMode
+  layoutMode,
+  isTransitioning = false
 }) => {
   const getFixedMaxVisible = (mode) => {
     if (mode === 'medium') return 2;
@@ -86,7 +87,22 @@ const CalendarDay = ({
     [allTransactions, displayCount]
   );
 
-  const pillTransition = { type: "spring", stiffness: 450, damping: 32 };
+  // Use instant animations during layout transitions to prevent conflicts
+  const pillTransition = isTransitioning
+    ? { duration: 0 }
+    : { type: "spring", stiffness: 450, damping: 32 };
+
+  const pillVariants = isTransitioning
+    ? {
+        initial: { opacity: 1, y: 0 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, transition: { duration: 0.08 } }
+      }
+    : {
+        initial: { opacity: 0, y: -4 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: 4, transition: { duration: 0.12 } }
+      };
 
   return (
     <div
@@ -104,9 +120,7 @@ const CalendarDay = ({
                 <motion.div
                   key={tx.id || `tx-${i}`}
                   className={`tx-pill ${tx.type}`}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4, transition: { duration: 0.12 } }}
+                  {...pillVariants}
                   transition={pillTransition}
                 >
                   <span className="tx-pill-text">{tx.name}</span>
@@ -116,17 +130,15 @@ const CalendarDay = ({
                 <motion.div
                   key="overflow-pill"
                   className={`tx-pill tx-pill-with-badge ${lastVisibleTx.type}`}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4, transition: { duration: 0.12 } }}
+                  {...pillVariants}
                   transition={pillTransition}
                 >
                   <span className="tx-pill-text">{lastVisibleTx.name}</span>
                   <motion.span
                     className="tx-overflow-badge"
-                    initial={{ scale: 0 }}
+                    initial={{ scale: isTransitioning ? 1 : 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                    transition={isTransitioning ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 28 }}
                   >
                     +{overflowCount}
                   </motion.span>

@@ -36,6 +36,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
   const gridRef = useRef(null);
   const flipStateRef = useRef(null);
   const prevLayoutModeRef = useRef(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const [layoutMode, setLayoutMode] = useState(() => {
     const height = window.innerHeight;
@@ -108,11 +109,13 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
       const prev = prevLayoutModeRef.current;
       const isSubtle = (prev === 'default' && layoutMode === 'medium') ||
                        (prev === 'medium' && layoutMode === 'default');
+      setIsTransitioning(true);
       requestAnimationFrame(() => {
         Flip.from(flipStateRef.current, {
           duration: isSubtle ? 0.25 : 0.35,
           ease: isSubtle ? 'power2.out' : 'back.out(1.2)',
           scale: false,
+          onComplete: () => setIsTransitioning(false),
         });
         flipStateRef.current = null;
       });
@@ -134,6 +137,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           day={day}
           isOtherMonth={true}
           layoutMode={layoutMode}
+          isTransitioning={isTransitioning}
         />
       );
     }
@@ -156,6 +160,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           isOtherMonth={false}
           onClick={onDayClick}
           layoutMode={layoutMode}
+          isTransitioning={isTransitioning}
         />
       );
     }
@@ -170,6 +175,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           day={i}
           isOtherMonth={true}
           layoutMode={layoutMode}
+          isTransitioning={isTransitioning}
         />
       );
     }
