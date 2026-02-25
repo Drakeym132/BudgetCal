@@ -116,7 +116,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
     if (layoutMode !== prevLayoutModeRef.current && flipStateRef.current) {
       const prev = prevLayoutModeRef.current;
       const isSubtle = (prev === 'default' && layoutMode === 'medium') ||
-                       (prev === 'medium' && layoutMode === 'default');
+        (prev === 'medium' && layoutMode === 'default');
 
       // Toggle CSS class on grid — pills read this via DOM instead of React prop
       isTransitioningRef.current = true;
@@ -163,6 +163,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           day={day}
           isOtherMonth={true}
           layoutMode={layoutMode}
+          isLayoutTransitioning={isTransitioningRef.current}
         />
       );
     }
@@ -185,6 +186,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           isOtherMonth={false}
           onClick={handleDayClick}
           layoutMode={layoutMode}
+          isLayoutTransitioning={isTransitioningRef.current}
         />
       );
     }
@@ -199,6 +201,7 @@ const CalendarGrid = ({ currentDate, balances, onDayClick, direction }) => {
           day={i}
           isOtherMonth={true}
           layoutMode={layoutMode}
+          isLayoutTransitioning={isTransitioningRef.current}
         />
       );
     }

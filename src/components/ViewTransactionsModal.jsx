@@ -23,7 +23,7 @@ const modalVariants = {
 const listVariants = {
   visible: {
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.03
     }
   }
 };
@@ -115,18 +115,16 @@ const ViewTransactionsModal = ({
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
-          <div className="modal-header-left">
-            <h2>Transactions for {formatDisplayDate(selectedDate)}</h2>
-            {typeof dayBalance === 'number' && (
-              <div className={`eod-summary ${dayBalance >= 0 ? 'positive' : 'negative'}`}>
-                EOD Balance: <strong>${formatCurrency(dayBalance)}</strong>
-              </div>
-            )}
-          </div>
+          <h2>Transactions for {formatDisplayDate(selectedDate)}</h2>
           <button className="close-btn" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
+        {typeof dayBalance === 'number' && (
+          <div className={`eod-summary ${dayBalance >= 0 ? 'positive' : 'negative'}`}>
+            EOD Balance: <strong>${formatCurrency(dayBalance)}</strong>
+          </div>
+        )}
 
         <motion.div
           className="view-tx-list"
@@ -141,8 +139,6 @@ const ViewTransactionsModal = ({
                 <motion.div
                   key={tx.id}
                   variants={itemVariants}
-                  layout
-                  layoutId={`modal-tx-${tx.id}`}
                 >
                   <TransactionItem
                     transaction={withBalance}

@@ -38,13 +38,6 @@ const badgeAnimate = { scale: 1, opacity: 1 };
 const instantBadgeTransition = { duration: 0 };
 const animatedBadgeTransition = { type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1], delay: 0.06 };
 
-// Helper to check if grid is in layout transition (reads CSS class, no React state)
-const isGridTransitioning = (cellEl) => {
-  if (!cellEl) return false;
-  const grid = cellEl.closest('.calendar-body');
-  return grid ? grid.classList.contains('is-layout-transitioning') : false;
-};
-
 const getFixedMaxVisible = (mode) => {
   if (mode === 'medium') return 2;
   if (mode === 'compact' || mode === 'ultrawide') return 1;
@@ -60,6 +53,7 @@ const CalendarDay = memo(({
   isOtherMonth,
   onClick,
   layoutMode,
+  isLayoutTransitioning,
 }) => {
   const [maxVisible, setMaxVisible] = useState(() => {
     const fixed = getFixedMaxVisible(layoutMode);
@@ -129,9 +123,8 @@ const CalendarDay = memo(({
     [allTransactions, displayCount]
   );
 
-  // Read transitioning state from CSS class on parent grid (no React re-render needed)
-  const transitioning = isGridTransitioning(cellRef.current);
-  const pillVariants = transitioning ? instantVariants : animatedVariants;
+  // Use prop-based transitioning flag — avoids 42 DOM traversals during every render cycle
+  const pillVariants = isLayoutTransitioning ? instantVariants : animatedVariants;
 
   // Stable click handler
   const handleClick = useCallback(() => {
@@ -182,9 +175,9 @@ const CalendarDay = memo(({
                   </span>
                   <motion.span
                     className="tx-overflow-badge"
-                    initial={transitioning ? instantBadgeInitial : animatedBadgeInitial}
+                    initial={isLayoutTransitioning ? instantBadgeInitial : animatedBadgeInitial}
                     animate={badgeAnimate}
-                    transition={transitioning ? instantBadgeTransition : animatedBadgeTransition}
+                    transition={isLayoutTransitioning ? instantBadgeTransition : animatedBadgeTransition}
                   >
                     +{overflowCount}
                   </motion.span>

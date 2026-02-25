@@ -7,8 +7,8 @@ const TransactionItem = ({ transaction, isEditMode, isSelected, onToggleSelect, 
 
   return (
     <div
-      className={`view-tx-item${isEditMode ? ' edit-mode' : ''}${isSelected ? ' selected' : ''}`}
-      onClick={isEditMode ? () => onToggleSelect(transaction.id) : undefined}
+      className={`view-tx-item${isEditMode ? ' edit-mode' : ' clickable'}${isSelected ? ' selected' : ''}`}
+      onClick={isEditMode ? () => onToggleSelect(transaction.id) : () => onEdit(transaction)}
     >
       {isEditMode && (
         <input
