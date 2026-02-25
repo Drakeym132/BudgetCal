@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Calendar, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, RefreshCw, Upload } from 'lucide-react';
 import { useTransactions, useBalanceCalculations, useModalState } from '../hooks/useTransactions';
 import { getDaysInMonth, formatCurrency } from '../utils/dateUtils';
 import { MONTHS } from '../utils/constants';
@@ -10,6 +10,7 @@ import CalendarGrid from './CalendarGrid';
 import ViewTransactionsModal from './ViewTransactionsModal';
 import AddEditTransactionModal from './AddEditTransactionModal';
 import UpdateBalanceModal from './UpdateBalanceModal';
+import ImportCSVModal from './ImportCSVModal';
 import '../styles/App.css';
 
 const CheckingCalendar = () => {
@@ -18,11 +19,13 @@ const CheckingCalendar = () => {
   const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [isBalanceModalClosing, setIsBalanceModalClosing] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const {
     transactions,
     startingBalance,
     setStartingBalance,
     addTransaction,
+    addTransactions,
     updateTransaction,
     deleteTransaction,
     saveStatus
@@ -61,7 +64,7 @@ const CheckingCalendar = () => {
   const openModalForDate = (dateStr) => {
     const dayTransactions = getTransactionsForDate(transactions, dateStr);
     setSelectedDate(dateStr);
-    
+
     if (dayTransactions.length > 0) {
       setShowViewModal(true);
     } else {
@@ -107,12 +110,12 @@ const CheckingCalendar = () => {
       } else {
         addTransaction(newTransaction);
       }
-      
+
       if (isEditingFromView) {
         returnToViewModal();
         return;
       }
-      
+
       setNewTransaction(createEmptyTransaction(today.toISOString().split('T')[0]));
       setSelectedDate(null);
       setShowModal(false);
@@ -124,7 +127,7 @@ const CheckingCalendar = () => {
     const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const currentMonth = currentDate.getTime();
     const targetMonth = todayMonth.getTime();
-    
+
     if (targetMonth > currentMonth) {
       setDirection(1);
     } else if (targetMonth < currentMonth) {
@@ -160,27 +163,34 @@ const CheckingCalendar = () => {
     closeBalanceModal();
   };
 
-  const currentDateTransactions = selectedDate 
-    ? getTransactionsForDate(transactions, selectedDate) 
+  const openImportModal = () => setShowImportModal(true);
+  const closeImportModal = () => setShowImportModal(false);
+
+  const handleImport = (txArray) => {
+    addTransactions(txArray);
+  };
+
+  const currentDateTransactions = selectedDate
+    ? getTransactionsForDate(transactions, selectedDate)
     : [];
 
   return (
     <div className="app-container">
       <div className="header-card-modern">
         <div className="header-top">
-            <div className="header-title-row">
-              <div className="header-title-section">
-                <h1 className="header-title">{MONTHS[month]} {year}</h1>
-                <div className="title-accent-row">
-                  <div className={`title-dash${saveStatus === 'pending' || saveStatus === 'saving' ? ' is-saving' : ''}`}></div>
-                  <div className="save-indicator-modern" aria-live="polite">
-                    {saveStatus === 'pending' || saveStatus === 'saving' ? 'Saving...' : ''}
-                    {saveStatus === 'saved' ? 'Saved' : ''}
-                    {saveStatus === 'error' ? 'Save failed' : ''}
-                  </div>
+          <div className="header-title-row">
+            <div className="header-title-section">
+              <h1 className="header-title">{MONTHS[month]} {year}</h1>
+              <div className="title-accent-row">
+                <div className={`title-dash${saveStatus === 'pending' || saveStatus === 'saving' ? ' is-saving' : ''}`}></div>
+                <div className="save-indicator-modern" aria-live="polite">
+                  {saveStatus === 'pending' || saveStatus === 'saving' ? 'Saving...' : ''}
+                  {saveStatus === 'saved' ? 'Saved' : ''}
+                  {saveStatus === 'error' ? 'Save failed' : ''}
                 </div>
               </div>
-            
+            </div>
+
             <div className="header-actions-row">
               <div className="nav-buttons">
                 <button className="nav-btn-modern" onClick={goToPrevMonth} aria-label="Previous month">
@@ -196,12 +206,15 @@ const CheckingCalendar = () => {
               <button className="action-btn action-btn--secondary" onClick={openBalanceModal}>
                 <RefreshCw size={18} /> <span>Update Balance</span>
               </button>
+              <button className="action-btn action-btn--import" onClick={openImportModal}>
+                <Upload size={18} /> <span>Import CSV</span>
+              </button>
               <button className="action-btn action-btn--primary" onClick={openModal}>
                 <Plus size={18} /> <span>Add Transaction</span>
               </button>
             </div>
           </div>
-          
+
           <ControlsPanel
             currentBalance={startingBalance}
             onUpdateBalance={openBalanceModal}
@@ -225,7 +238,7 @@ const CheckingCalendar = () => {
           direction={direction}
         />
       </div>
-      
+
       <AnimatePresence>
         {showViewModal && selectedDate && (
           <ViewTransactionsModal
@@ -240,7 +253,7 @@ const CheckingCalendar = () => {
           />
         )}
       </AnimatePresence>
-      
+
       <AnimatePresence>
         {showModal && (
           <AddEditTransactionModal
@@ -266,6 +279,15 @@ const CheckingCalendar = () => {
             onClose={closeBalanceModal}
             onSave={handleSaveBalance}
             isClosing={isBalanceModalClosing}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showImportModal && (
+          <ImportCSVModal
+            onClose={closeImportModal}
+            onImport={handleImport}
           />
         )}
       </AnimatePresence>

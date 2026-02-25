@@ -132,16 +132,26 @@ export const useTransactions = () => {
   }, [isElectron]);
 
   const addTransaction = (transaction) => {
-    setTransactions(prev => [...prev, { 
-      ...transaction, 
-      id: Date.now(), 
-      amount: parseFloat(transaction.amount) 
+    setTransactions(prev => [...prev, {
+      ...transaction,
+      id: Date.now(),
+      amount: parseFloat(transaction.amount)
     }]);
   };
 
+  const addTransactions = (txArray) => {
+    const base = Date.now();
+    const newTxs = txArray.map((tx, i) => ({
+      ...tx,
+      id: base + i,
+      amount: parseFloat(tx.amount),
+    }));
+    setTransactions(prev => [...prev, ...newTxs]);
+  };
+
   const updateTransaction = (id, updatedTransaction) => {
-    setTransactions(prev => prev.map(tx => 
-      tx.id === id 
+    setTransactions(prev => prev.map(tx =>
+      tx.id === id
         ? { ...updatedTransaction, id, amount: parseFloat(updatedTransaction.amount) }
         : tx
     ));
@@ -156,6 +166,7 @@ export const useTransactions = () => {
     startingBalance,
     setStartingBalance,
     addTransaction,
+    addTransactions,
     updateTransaction,
     deleteTransaction,
     saveStatus
@@ -166,7 +177,7 @@ export const useBalanceCalculations = (transactions, startingBalance, currentDat
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
 
-  const balances = useMemo(() => 
+  const balances = useMemo(() =>
     calculateBalances(transactions, startingBalance, todayStr, currentDate),
     [transactions, startingBalance, todayStr, currentDate]
   );
@@ -177,12 +188,12 @@ export const useBalanceCalculations = (transactions, startingBalance, currentDat
     return calculateFutureBalance(transactions, startingBalance, todayStr, daysUntilEndOfMonth);
   }, [transactions, startingBalance, todayStr]);
 
-  const balance30Days = useMemo(() => 
+  const balance30Days = useMemo(() =>
     calculateFutureBalance(transactions, startingBalance, todayStr, 30),
     [transactions, startingBalance, todayStr]
   );
 
-  const balance60Days = useMemo(() => 
+  const balance60Days = useMemo(() =>
     calculateFutureBalance(transactions, startingBalance, todayStr, 60),
     [transactions, startingBalance, todayStr]
   );

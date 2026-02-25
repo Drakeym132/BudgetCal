@@ -7,3 +7,5 @@ export { default as TransactionItem } from './TransactionItem';
 export { default as ViewTransactionsModal } from './ViewTransactionsModal';
 export { default as AddEditTransactionModal } from './AddEditTransactionModal';
 export { default as UpdateBalanceModal } from './UpdateBalanceModal';
+export { default as ImportCSVModal } from './ImportCSVModal';
+

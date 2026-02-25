@@ -1,0 +1,9 @@
+Date,Description,Amount,Type
+2026-02-01,Paycheck,2500.00,Income
+2026-02-05,Rent,1200.00,Expense
+2026-02-08,Groceries,87.43,Expense
+2026-02-10,Netflix,15.99,Expense
+2026-02-15,Freelance Payment,500.00,Income
+2026-02-20,Electric Bill,120.00,Expense
+2026-02-22,Restaurant,45.50,Expense
+INVALID-DATE,Corrupt Row,abc,
