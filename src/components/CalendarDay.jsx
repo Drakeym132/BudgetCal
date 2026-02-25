@@ -116,7 +116,7 @@ const CalendarDay = memo(({
   }, [dayData?.transactions?.length, layoutMode, recalcPills]);
 
   const effectiveMaxVisible = layoutMode === 'default' ? maxVisible :
-                              layoutMode === 'medium' ? 2 : 1;
+    layoutMode === 'medium' ? 2 : 1;
   const allTransactions = dayData?.transactions || [];
   const totalCount = allTransactions.length;
   const hasOverflow = totalCount > effectiveMaxVisible;
@@ -161,6 +161,9 @@ const CalendarDay = memo(({
                   exit="exit"
                 >
                   <span className="tx-pill-text">{tx.name}</span>
+                  <span className="tx-pill-amount">
+                    {tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}
+                  </span>
                 </motion.div>
               ))}
               {lastVisibleTx && (
@@ -174,6 +177,9 @@ const CalendarDay = memo(({
                   exit="exit"
                 >
                   <span className="tx-pill-text">{lastVisibleTx.name}</span>
+                  <span className="tx-pill-amount">
+                    {lastVisibleTx.type === 'income' ? '+' : '-'}${formatCurrency(lastVisibleTx.amount)}
+                  </span>
                   <motion.span
                     className="tx-overflow-badge"
                     initial={transitioning ? instantBadgeInitial : animatedBadgeInitial}
@@ -188,7 +194,7 @@ const CalendarDay = memo(({
           </div>
         )}
 
-        {dayData && typeof dayData.balance === 'number' && !isBeforeStart && (
+        {dayData && typeof dayData.balance === 'number' && (
           <div className={`balance ${dayData.balance >= 0 ? 'positive' : 'negative'}`}>
             ${formatCurrency(dayData.balance)}
           </div>

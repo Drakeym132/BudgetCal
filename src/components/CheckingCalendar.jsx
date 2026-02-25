@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar, RefreshCw, Upload } from 'lu
 import { useTransactions, useBalanceCalculations, useModalState } from '../hooks/useTransactions';
 import { getDaysInMonth, formatCurrency } from '../utils/dateUtils';
 import { MONTHS } from '../utils/constants';
-import { getTransactionsForDate, createEmptyTransaction } from '../utils/transactionUtils';
+import { getTransactionsForDate, createEmptyTransaction, getRunningBalancesForDay } from '../utils/transactionUtils';
 import ControlsPanel from './ControlsPanel';
 import CalendarGrid from './CalendarGrid';
 import ViewTransactionsModal from './ViewTransactionsModal';
@@ -174,6 +174,20 @@ const CheckingCalendar = () => {
     ? getTransactionsForDate(transactions, selectedDate)
     : [];
 
+  const currentDayBalance = selectedDate && balances[selectedDate]
+    ? balances[selectedDate].balance
+    : null;
+
+  const currentRunningBalances = selectedDate && currentDateTransactions.length > 0
+    ? getRunningBalancesForDay(
+      currentDateTransactions,
+      startingBalance,
+      today.toISOString().split('T')[0],
+      selectedDate,
+      transactions
+    )
+    : [];
+
   return (
     <div className="app-container">
       <div className="header-card-modern">
@@ -244,6 +258,8 @@ const CheckingCalendar = () => {
           <ViewTransactionsModal
             selectedDate={selectedDate}
             transactions={currentDateTransactions}
+            runningBalances={currentRunningBalances}
+            dayBalance={currentDayBalance}
             isClosing={isClosing}
             isReturningToView={isReturningToView}
             onClose={closeAllModals}

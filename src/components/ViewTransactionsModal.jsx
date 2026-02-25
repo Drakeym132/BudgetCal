@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus } from 'lucide-react';
-import { formatDisplayDate } from '../utils/dateUtils';
+import { formatDisplayDate, formatCurrency } from '../utils/dateUtils';
 import TransactionItem from './TransactionItem';
 
 const overlayVariants = {
@@ -11,9 +11,9 @@ const overlayVariants = {
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 10 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
+  visible: {
+    opacity: 1,
+    scale: 1,
     y: 0,
     transition: { type: 'tween', duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }
   },
@@ -30,31 +30,33 @@ const listVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 10, scale: 0.98 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
     transition: { type: "spring", stiffness: 350, damping: 25 }
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.9, 
-    transition: { duration: 0.2 } 
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.2 }
   }
 };
 
-const ViewTransactionsModal = ({ 
-  selectedDate, 
-  transactions, 
-  isClosing, 
+const ViewTransactionsModal = ({
+  selectedDate,
+  transactions,
+  runningBalances = [],
+  dayBalance,
+  isClosing,
   isReturningToView,
-  onClose, 
-  onEdit, 
-  onDelete, 
-  onAddNew 
+  onClose,
+  onEdit,
+  onDelete,
+  onAddNew
 }) => {
   return (
-    <motion.div 
+    <motion.div
       className="modal-overlay"
       variants={overlayVariants}
       initial="hidden"
@@ -62,7 +64,7 @@ const ViewTransactionsModal = ({
       exit="hidden"
       onClick={onClose}
     >
-      <motion.div 
+      <motion.div
         className="modal"
         variants={modalVariants}
         initial={isReturningToView ? false : "hidden"}
@@ -71,36 +73,46 @@ const ViewTransactionsModal = ({
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>Transactions for {formatDisplayDate(selectedDate)}</h2>
+          <div className="modal-header-left">
+            <h2>Transactions for {formatDisplayDate(selectedDate)}</h2>
+            {typeof dayBalance === 'number' && (
+              <div className={`eod-summary ${dayBalance >= 0 ? 'positive' : 'negative'}`}>
+                EOD Balance: <strong>${formatCurrency(dayBalance)}</strong>
+              </div>
+            )}
+          </div>
           <button className="close-btn" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="view-tx-list"
           variants={listVariants}
           initial="hidden"
           animate="visible"
         >
           <AnimatePresence mode="popLayout" initial={false}>
-            {transactions.map(tx => (
-              <motion.div
-                key={tx.id}
-                variants={itemVariants}
-                layout
-                layoutId={`modal-tx-${tx.id}`}
-              >
-                <TransactionItem
-                  transaction={tx}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-              </motion.div>
-            ))}
+            {transactions.map((tx, i) => {
+              const withBalance = runningBalances[i] ?? tx;
+              return (
+                <motion.div
+                  key={tx.id}
+                  variants={itemVariants}
+                  layout
+                  layoutId={`modal-tx-${tx.id}`}
+                >
+                  <TransactionItem
+                    transaction={withBalance}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
-        
+
         <button className="add-more-btn" onClick={onAddNew}>
           <Plus size={18} /> Add Transaction
         </button>
