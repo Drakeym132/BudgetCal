@@ -1475,6 +1475,55 @@ body {
   border-color: rgba(203, 213, 225, 0.9);
 }
 
+.view-tx-item.edit-mode {
+  cursor: pointer;
+  user-select: none;
+}
+
+.view-tx-item.edit-mode:hover {
+  background: #eef2f7;
+}
+
+.view-tx-item.selected {
+  background: #eff6ff;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.1);
+}
+
+.view-tx-item.selected:hover {
+  background: #dbeafe;
+}
+
+/* Checkbox shown in edit mode */
+.tx-checkbox {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Per-item edit pencil shown in edit mode */
+.tx-edit-btn {
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 7px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tx-edit-btn:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
 /* Icon */
 .tx-icon {
   width: 36px;
@@ -1572,64 +1621,17 @@ body {
   color: var(--balance-negative);
 }
 
-/* Action buttons column */
-.tx-actions {
+/* ── Modal footer ─────────────────────────────────────────── */
+.modal-footer {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.18s ease;
+  gap: 8px;
+  align-items: stretch;
 }
 
-.view-tx-item:hover .tx-actions {
-  opacity: 1;
-}
-
-/* Keep actions visible on touch / focus */
-.tx-actions:focus-within {
-  opacity: 1;
-}
-
-.edit-btn {
-  background: #f0f0f0;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.edit-btn:hover {
-  background: #e2e8f0;
-  color: #334155;
-}
-
-.delete-btn {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.delete-btn:hover {
-  background: #fee2e2;
-  color: #ef4444;
-}
-
+/* Add Transaction – dashed, fills remaining space */
 .add-more-btn {
-  width: 100%;
-  padding: 12px;
+  flex: 1;
+  padding: 11px 14px;
   border: 2px dashed #e2e8f0;
   border-radius: 10px;
   background: transparent;
@@ -1649,6 +1651,84 @@ body {
   border-color: #22c55e;
   color: #22c55e;
   background: #f0fdf4;
+}
+
+/* Global Edit toggle button */
+.edit-mode-btn {
+  flex-shrink: 0;
+  padding: 11px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+}
+
+.edit-mode-btn:hover {
+  border-color: #94a3b8;
+  color: #334155;
+  background: #f8fafc;
+}
+
+/* Done / Confirm button */
+.done-btn {
+  flex-shrink: 0;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #22c55e;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+}
+
+.done-btn:hover {
+  background: #16a34a;
+}
+
+/* Delete Selected button */
+.delete-selected-btn {
+  flex: 1;
+  padding: 11px 14px;
+  border: 1.5px solid #fca5a5;
+  border-radius: 10px;
+  background: #fff;
+  color: #ef4444;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+}
+
+.delete-selected-btn:hover:not(.disabled) {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.delete-selected-btn.disabled {
+  border-color: #e2e8f0;
+  color: #cbd5e1;
+  cursor: not-allowed;
 }
 
 /* Modal Styles */
@@ -1763,13 +1843,15 @@ body {
 
 /* End-of-day balance chip in modal header */
 .eod-summary {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 999px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  width: 100%;
 }
 
 .eod-summary.positive {
@@ -1784,7 +1866,7 @@ body {
 
 .eod-summary strong {
   font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 

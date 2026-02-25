@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Pencil, Check, Trash2 } from 'lucide-react';
 import { formatDisplayDate, formatCurrency } from '../utils/dateUtils';
 import TransactionItem from './TransactionItem';
 
@@ -55,6 +55,48 @@ const ViewTransactionsModal = ({
   onDelete,
   onAddNew
 }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  // Reset edit state whenever the date changes or the modal closes
+  useEffect(() => {
+    setIsEditMode(false);
+    setSelectedIds(new Set());
+  }, [selectedDate]);
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleEnterEdit = () => {
+    setIsEditMode(true);
+    setSelectedIds(new Set());
+  };
+
+  const handleDone = () => {
+    setIsEditMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    selectedIds.forEach(id => onDelete(id));
+    setSelectedIds(new Set());
+    // If all transactions were deleted, exit edit mode
+    if (selectedIds.size === transactions.length) {
+      setIsEditMode(false);
+    }
+  };
+
+  const selectedCount = selectedIds.size;
+
   return (
     <motion.div
       className="modal-overlay"
@@ -104,8 +146,10 @@ const ViewTransactionsModal = ({
                 >
                   <TransactionItem
                     transaction={withBalance}
+                    isEditMode={isEditMode}
+                    isSelected={selectedIds.has(tx.id)}
+                    onToggleSelect={toggleSelect}
                     onEdit={onEdit}
-                    onDelete={onDelete}
                   />
                 </motion.div>
               );
@@ -113,9 +157,32 @@ const ViewTransactionsModal = ({
           </AnimatePresence>
         </motion.div>
 
-        <button className="add-more-btn" onClick={onAddNew}>
-          <Plus size={18} /> Add Transaction
-        </button>
+        <div className="modal-footer">
+          {isEditMode ? (
+            <>
+              <button
+                className={`delete-selected-btn${selectedCount === 0 ? ' disabled' : ''}`}
+                onClick={handleDeleteSelected}
+                disabled={selectedCount === 0}
+              >
+                <Trash2 size={16} />
+                {selectedCount > 0 ? `Delete Selected (${selectedCount})` : 'Delete Selected'}
+              </button>
+              <button className="done-btn" onClick={handleDone}>
+                <Check size={16} /> Done
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="add-more-btn" onClick={onAddNew}>
+                <Plus size={18} /> Add Transaction
+              </button>
+              <button className="edit-mode-btn" onClick={handleEnterEdit}>
+                <Pencil size={15} /> Edit
+              </button>
+            </>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

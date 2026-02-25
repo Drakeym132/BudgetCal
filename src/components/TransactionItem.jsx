@@ -1,12 +1,26 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Repeat, Pencil, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Repeat, Pencil } from 'lucide-react';
 import { formatCurrency } from '../utils/dateUtils';
 
-const TransactionItem = ({ transaction, onEdit, onDelete }) => {
+const TransactionItem = ({ transaction, isEditMode, isSelected, onToggleSelect, onEdit }) => {
   const { type, name, amount, recurring, date, balanceAfter } = transaction;
 
   return (
-    <div className="view-tx-item">
+    <div
+      className={`view-tx-item${isEditMode ? ' edit-mode' : ''}${isSelected ? ' selected' : ''}`}
+      onClick={isEditMode ? () => onToggleSelect(transaction.id) : undefined}
+    >
+      {isEditMode && (
+        <input
+          type="checkbox"
+          className="tx-checkbox"
+          checked={!!isSelected}
+          onChange={() => onToggleSelect(transaction.id)}
+          onClick={e => e.stopPropagation()}
+          aria-label={`Select ${name}`}
+        />
+      )}
+
       <div className={`tx-icon ${type}`}>
         {type === 'income' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
       </div>
@@ -20,8 +34,8 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
         </div>
         <div className="tx-secondary-row">
           <span className="tx-meta">
+            {recurring !== 'once' && <Repeat size={10} />}
             {recurring === 'once' ? 'One-time' : recurring.charAt(0).toUpperCase() + recurring.slice(1)}
-            {recurring !== 'once' && <><Repeat size={10} /> from {date}</>}
           </span>
           {typeof balanceAfter === 'number' && (
             <span className={`tx-balance-after ${balanceAfter >= 0 ? 'positive' : 'negative'}`}>
@@ -31,14 +45,15 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
         </div>
       </div>
 
-      <div className="tx-actions">
-        <button className="edit-btn" onClick={() => onEdit(transaction)} aria-label="Edit transaction">
+      {isEditMode && (
+        <button
+          className="tx-edit-btn"
+          onClick={e => { e.stopPropagation(); onEdit(transaction); }}
+          aria-label={`Edit ${name}`}
+        >
           <Pencil size={14} />
         </button>
-        <button className="delete-btn" onClick={() => onDelete(transaction.id)} aria-label="Delete transaction">
-          <Trash2 size={14} />
-        </button>
-      </div>
+      )}
     </div>
   );
 };
